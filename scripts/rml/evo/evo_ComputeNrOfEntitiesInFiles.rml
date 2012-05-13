@@ -1,0 +1,51 @@
+/*
+* This file is part of EvoFetch (the Evolutionary Fact Extraction Tool CHain).
+*
+* EvoFetch is free software; you can redistribute it and/or modify it under the
+* terms of the GNU General Public License as published by the Free Software
+* Foundation; either version 2 of the License, or (at your option) any later
+* version.
+*
+* EvoFetch is distributed in the hope that it will be useful, but WITHOUT ANY
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+* FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+* details.
+*
+* You should have received a copy of the GNU General Public License along
+* with EvoFetch; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+*
+* Copyright 2011 James Goodger <james@dieharder.com>
+*/
+
+/**
+ * Counts the number of functions and methods
+ * belonging to files and classes in the latest
+ * version of the software.
+ **/
+
+// print header
+PRINT "fileId	fileName	nrOfEntities	nrOfClasses",ENDL;
+
+InvokeableEntityVersion(anEntity) := MethodVersion(anEntity, _, _) | FunctionVersion(anEntity, _, _);
+
+LatestRevisions(aRevision) := Revision(aRevision, _)
+	& EX(latest, LatestSystemVersion(latest) & ProducesRevision(latest, aRevision));
+
+RevisionContainingEntity(anEntity, aRevisionId) := InvokeableEntityVersion(anEntity) &
+	LatestRevisions(aRevisionId) &
+	(FunctionVersionBelongsToRevision(anEntity, aRevisionId) |
+	EX(classVersionId, MethodVersionBelongsToClassVersion(anEntity, classVersionId) & ClassVersionBelongsToRevision(classVersionId, aRevisionId)));
+
+IsARevision(aRevisionId) := RevisionContainingEntity(_, aRevisionId);
+
+FOR theRevisionId IN IsARevision(x) {
+	nrOfEntities := #(RevisionContainingEntity(x, theRevisionId));
+	nrOfClasses := #(ClassVersionBelongsToRevision(x, theRevisionId));
+
+	RevisionName(aRevisionName) := Revision(theRevisionId, aRevisionName);
+
+	FOR theRevisionName IN RevisionName(x) {
+		PRINT theRevisionId, "	'", theRevisionName, "'	", nrOfEntities, "	", nrOfClasses, ENDL;
+	}
+}

@@ -1,0 +1,46 @@
+/*
+* This file is part of EvoFetch (the Evolutionary Fact Extraction Tool CHain).
+*
+* EvoFetch is free software; you can redistribute it and/or modify it under the
+* terms of the GNU General Public License as published by the Free Software
+* Foundation; either version 2 of the License, or (at your option) any later
+* version.
+*
+* EvoFetch is distributed in the hope that it will be useful, but WITHOUT ANY
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+* FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+* details.
+*
+* You should have received a copy of the GNU General Public License along
+* with EvoFetch; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+*
+* Copyright 2011 James Goodger <james@evofetch.org>
+*/
+
+/**
+ * Find the authors who only make changes to methods or functions which have
+ * already been changed by other people.
+ **/
+
+InvokableEntityChangedByRevision(anEntity, aRevision) := FunctionChangedByRevision(anEntity, aRevision) | MethodChangedByRevision(anEntity, aRevision);
+
+Earlier(aRevision, anEarlierRevision) := Revision(aRevision, _) & TC(Previous(aRevision, anEarlierRevision));
+
+FOR theAuthor IN Author(x, _) {
+
+	EntitiesChangedByAuthor(anEntity, aRevision) := InvokableEntityChangedByRevision(anEntity, aRevision) & RevisionBelongsToAuthor(aRevision, theAuthor);
+	
+	EntitiesAlreadyChanged(anEntity, aRevision) := EntitiesChangedByAuthor(anEntity, aRevision) &
+						       EX(anotherRevision, Earlier(aRevision, anotherRevision) &
+						       InvokableEntityChangedByRevision(anEntity, anotherRevision) &
+						       !EntitiesChangedByAuthor(anEntity, anotherRevision));
+	
+	totalEntitiesChanged := #(EntitiesChangedByAuthor(anEntity, _));
+	totalChangesToExistingEntities := #(EntitiesAlreadyChanged(anEntity, _));
+	
+	FOR theAuthorName IN Author(theAuthor, x) {
+		PRINT theAuthor, "	", theAuthorName, "	", totalEntitiesChanged, "	", totalChangesToExistingEntities, ENDL;	
+	}
+
+}

@@ -1,0 +1,48 @@
+/*
+* This file is part of EvoFetch (the Evolutionary Fact Extraction Tool CHain).
+*
+* EvoFetch is free software; you can redistribute it and/or modify it under the
+* terms of the GNU General Public License as published by the Free Software
+* Foundation; either version 2 of the License, or (at your option) any later
+* version.
+*
+* EvoFetch is distributed in the hope that it will be useful, but WITHOUT ANY
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+* FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+* details.
+*
+* You should have received a copy of the GNU General Public License along
+* with EvoFetch; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+*
+* Copyright 2011 James Goodger <james@evofetch.org>
+*/
+
+/**
+ * Count the number of changes made for each invokable entity
+ * (function or method).
+ **/
+
+ChangedEntities(anEntity) := FunctionChangedByRevision(anEntity, _) | MethodChangedByRevision(anEntity, _);
+
+InvokableEntityChanges(anEntity, aRevision) := FunctionChangedByRevision(anEntity, aRevision) | MethodChangedByRevision(anEntity, aRevision);
+
+maxCount := 0;
+
+FOR theEntity IN ChangedEntities(x) {
+	noOfChanges := #(InvokableEntityChanges(theEntity, x));
+	IF( noOfChanges > maxCount ) {
+		maxCount := noOfChanges;
+	}
+}
+
+FOR theEntity IN ChangedEntities(x) {
+	noOfChanges := #(InvokableEntityChanges(theEntity, x));
+	IF( noOfChanges = maxCount ) {
+		EntityName(anEntityName) := Function(theEntity, anEntityName) | Method(theEntity, anEntityName);
+
+		FOR theEntityName IN EntityName(x) {
+			PRINT theEntity, "	'", theEntityName, "'	", noOfChanges, ENDL;
+		}
+	}
+}

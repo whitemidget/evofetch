@@ -1,0 +1,41 @@
+/*
+* This file is part of EvoFetch (the Evolutionary Fact Extraction Tool CHain).
+*
+* EvoFetch is free software; you can redistribute it and/or modify it under the
+* terms of the GNU General Public License as published by the Free Software
+* Foundation; either version 2 of the License, or (at your option) any later
+* version.
+*
+* EvoFetch is distributed in the hope that it will be useful, but WITHOUT ANY
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+* FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+* details.
+*
+* You should have received a copy of the GNU General Public License along
+* with EvoFetch; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+*
+* Copyright 2011 James Goodger <james@evofetch.org>
+*/
+
+/**
+ * Compute the proportion of transactions which add new source files
+ * to the project.
+ **/
+
+Earlier(anArtefact, anEarlierArtefact) := TC(Previous(anArtefact, anEarlierArtefact));
+
+TransactionFiles(aTransaction, aFile) := Transaction(aTransaction, _) & EX(aRevision, RevisionBelongsToTransaction(aRevision, aTransaction) & RevisionOfFile(aRevision, aFile));
+
+TransactionsWithoutNewFiles(aTransaction) := Transaction(aTransaction, _) & 
+	EX(anotherTransaction, Transaction(anotherTransaction, _) & Earlier(aTransaction, anotherTransaction) &
+	!EX(aFile, TransactionFiles(aTransaction, aFile) & !TransactionFiles(anotherTransaction, aFile)));
+	
+count1 := #(TransactionsWithoutNewFiles(x));
+count2 := #(Transaction(x, _));
+result := 1 - (count1 / count2);
+
+PRINT "Total transactions without new files = ", count1, ENDL;
+PRINT "Total transactions = ", count2, ENDL;
+PRINT "Proportion of transactions with a unique set of files = ", result, ENDL;
+

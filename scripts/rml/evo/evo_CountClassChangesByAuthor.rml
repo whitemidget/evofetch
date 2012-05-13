@@ -1,0 +1,45 @@
+/*
+* This file is part of EvoFetch (the Evolutionary Fact Extraction Tool CHain).
+*
+* EvoFetch is free software; you can redistribute it and/or modify it under the
+* terms of the GNU General Public License as published by the Free Software
+* Foundation; either version 2 of the License, or (at your option) any later
+* version.
+*
+* EvoFetch is distributed in the hope that it will be useful, but WITHOUT ANY
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+* FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+* details.
+*
+* You should have received a copy of the GNU General Public License along
+* with EvoFetch; if not, write to the Free Software Foundation, Inc.,
+* 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+*
+* Copyright 2011 James Goodger <james@evofetch.org>
+*/
+
+/**
+ * Count the number of changes made to classes by author
+ **/
+
+ClassesChangedByAuthor(anAuthor, aClass) := Author(anAuthor, _) & EX(aRevision, RevisionBelongsToAuthor(aRevision, anAuthor) & ClassChangedByRevision(aClass, aRevision));
+
+maxCount := 0;
+
+FOR theAuthor IN Author(x, _) {
+	noOfChanges := #(ClassesChangedByAuthor(theAuthor, x));
+	IF( noOfChanges > maxCount ) {
+		maxCount := noOfChanges;
+	}
+}
+
+FOR theAuthor IN Author(x, _) {
+	noOfChanges := #(ClassesChangedByAuthor(theAuthor, x));
+	IF( noOfChanges = maxCount ) {
+		AuthorName(anAuthorName) := Author(theAuthor, anAuthorName);
+
+		FOR theAuthorName IN AuthorName(x) {
+			PRINT theAuthor, "	'", theAuthorName, "'	", noOfChanges, ENDL;
+		}
+	}
+}
